@@ -1,0 +1,7 @@
+ofxAudioAnalyzer
+ofxAudioDecoder
+ofxGui
+ofxKinect
+ofxNetwork
+ofxPostGlitch
+ofxPostProcessing
