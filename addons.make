@@ -2,6 +2,7 @@ ofxAudioAnalyzer
 ofxAudioDecoder
 ofxGui
 ofxKinect
+ofxMidi
 ofxNetwork
 ofxPostGlitch
 ofxPostProcessing

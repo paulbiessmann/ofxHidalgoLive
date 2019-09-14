@@ -8,8 +8,9 @@
 #include "ofxPostProcessing.h"
 #include "ofxKinect.h"
 #include "ofxPostGlitch.h"
+#include "ofxMidi.h"
 
-class ofApp : public ofBaseApp{
+class ofApp : public ofBaseApp, public ofxMidiListener {
 
 	public:
 		void setup();
@@ -22,6 +23,8 @@ class ofApp : public ofBaseApp{
     void drawPointCloud();
     
         void audioIn(ofSoundBuffer &inBuffer);
+    void newMidiMessage(ofxMidiMessage& eventArgs);
+    
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -151,4 +154,18 @@ class ofApp : public ofBaseApp{
     /* post glitch */
     ofxPostGlitch    myGlitch;
 
+    
+    //MIDI
+    stringstream text;
+    ofxMidiIn midiIn;
+    ofxMidiMessage midiMessage;
+    
+    float glitchAmount;
+    float audioSensitivity;
+    float whiteStuff;
+    
+    
+    float opacityLive = 0;
+    bool    bDrawKinect = false;
+    bool    bDrawAudio  = true;
 };

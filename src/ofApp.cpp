@@ -13,28 +13,36 @@ void ofApp::setup(){
     int sampleRate = 44100;
     bufferSize = 512;
     int outChannels = 0;
-    int inChannels = 1;
+    int inChannels = 2;
     
     
-//    // setup the sound stream
-//    soundStream.setup(this, outChannels, inChannels, sampleRate, bufferSize, 3);
-//    soundStream.printDeviceList();
-//    soundStream.setDeviceID(2);
+    // MIDI
+    midiIn.listPorts();
+    midiIn.openPort(2); //3
+    midiIn.ignoreTypes(false, false, false);
+    midiIn.addListener(this);
+    midiIn.setVerbose(true);
+    
+    // setup the sound stream
+    soundStream.setup(this, outChannels, inChannels, sampleRate, bufferSize, 3);
+    soundStream.printDeviceList();
+    //soundStream.setDeviceID(2);
     
     //setup ofxAudioAnalyzer with the SAME PARAMETERS
     audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
     
     img.load("test.png");
     img.resize(fullWidth, fullHeight);
-    player.load("TriggerPiano.wav");
+   // player.load("TriggerPiano.wav");
     
     gui.setup();
     gui.setPosition(20, 150);
     gui.add(smoothing.setup  ("Smoothing", 0.0, 0.0, 1.0));
     
+    
     //create the socket and set to send to 127.0.0.1:11999
     udpConnection.Create();
-    udpConnection.Connect("127.0.0.1",3040);
+    udpConnection.Connect("127.0.0.1",3040); //3040
     udpConnection.SetNonBlocking(true);
     
     
@@ -99,14 +107,25 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     
+    //----------------- global MIDI  ------------------
+    if(midiMessage.control == 0){ // Nanokontrol fader 1 = cc 0
+        audioSensitivity = ofMap(midiMessage.value, 0, 127, 0, 1);
+    }
+    if(midiMessage.control == 1){ // fader 2
+        glitchAmount  = ofMap(midiMessage.value, 0, 127, 0, 1);
+    }
+    if(midiMessage.control == 2){ // fader 3
+        whiteStuff  = ofMap(midiMessage.value, 0, 127, 0, 1);
+    }
+    
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
     
     //-:Get buffer from sound player:
-    soundBuffer = player.getCurrentSoundBuffer(bufferSize);
+  //  soundBuffer = player.getCurrentSoundBuffer(bufferSize);
     
     
     //-:ANALYZE SOUNDBUFFER:
-    audioAnalyzer.analyze(soundBuffer);
+//    audioAnalyzer.analyze(soundBuffer);
     
     //-:get Values:
     rms     = audioAnalyzer.getValue(RMS, 0, smoothing);
@@ -157,10 +176,12 @@ void ofApp::draw(){
     screenGrabber.begin();
     
 
-    img.draw(0,0);
+    //img.draw(0,0);
     ofSetColor(255);
-    //drawKinectStuff();
-    drawAudioStuff();
+    
+    
+    if(bDrawKinect){drawKinectStuff();}
+    if(bDrawAudio){drawAudioStuff();}
     
 
     
@@ -203,34 +224,34 @@ void ofApp::draw(){
     ofSetColor(255);
 
     if(1){
-        if(pitchFreq > 800 && pitchFreq < 850 && pitchConf > 0.4 ){
+        if(pitchFreq > 800 && pitchFreq < 850 && pitchConf > glitchAmount ){ //0.4
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , false);
         }
-        if(pitchFreq > 400 && pitchFreq < 450 && pitchConf > 0.4  ){
+        if(pitchFreq > 400 && pitchFreq < 450 && pitchConf > glitchAmount  ){
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , false);
         }
-        if(pitchFreq > 300 && pitchFreq < 350 && pitchConf > 0.4  ){
+        if(pitchFreq > 300 && pitchFreq < 350 && pitchConf > glitchAmount ){
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , false);
         }
-        if(pitchFreq > 200 && pitchFreq < 250 && pitchConf > 0.4  ){
+        if(pitchFreq > 200 && pitchFreq < 250 && pitchConf > glitchAmount  ){
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , true);
         }
         else{
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , false);
         }
-        if(pitchFreq > 100 && pitchFreq < 150 && pitchConf > 0.4 ){
+        if(pitchFreq > 100 && pitchFreq < 150 && pitchConf > glitchAmount){
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , false);
 
         }
-        if(pitchFreq > 1000 && pitchFreq < 1050&& pitchConf > 0.4 || strongPeak > 0.7  ){
+        if(pitchFreq > 1000 && pitchFreq < 1050&& pitchConf > glitchAmount || strongPeak > 1.5 - glitchAmount  ){ //0.7
             myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE    , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE    , false);
@@ -245,20 +266,29 @@ void ofApp::draw(){
     // hirn wlan
     if(pitchFreq > 310 && pitchFreq < 330 && pitchConf > 0.4){
         ofDrawRectangle(50, 500, 10*rms, 100);
+        
+        cout << "opacityLive 1 " << opacityLive << "\n";
+        
     }
     
     //piano
     //if(strongPeak > 0.7){
-    if((pitchFreq > 1000 && pitchConf > 0.4) || strongPeak > 0.7){
+    else if((pitchFreq > 1000 && pitchConf > 0.4) || strongPeak > 0.7){
         ofSetColor(0,255,0);
         ofDrawRectangle(200, 500, 10*rms, 100);
         
-        //cout << "rms " << rms << "\n";
-        
-        string message="setInput \"opcityTest\" " + ofToString(strongPeak);
-        udpConnection.Send(message.c_str(),message.length());
+        opacityLive = ofMap(rms, 0, 1, 0, 100);
+        opacityLive *= audioSensitivity;
+        cout << "opacityLive 2 " << opacityLive << "\n";
 
     }
+    
+    else {
+        opacityLive = 0;
+    }
+    
+    string message="setInput \"opacityLive\" " + ofToString(opacityLive);
+    udpConnection.Send(message.c_str(),message.length());
     
 }
 //--------------------------------------------------------------
@@ -272,6 +302,17 @@ void ofApp::drawKinectStuff(){
     }
 
     
+    if(whiteStuff > 0.001){
+        int stepsize = 8;
+        for(int i=0; i<fullWidth; i+=stepsize){
+            for(int j=0; j<fullHeight; j+=stepsize/2){
+                ofColor col = ofColor(255, ofRandom(255) * whiteStuff);
+                ofSetColor(col);
+                ofDrawRectangle(i, j,  stepsize/2, stepsize);
+            }
+        }
+    }
+    ofSetColor(255);
 
 
 //    for (int i=0; i<size; i++){
@@ -549,10 +590,10 @@ void ofApp::drawAudioStuff(){
     //-Gui & info:
     
     gui.draw();
-    ofSetColor(255);
-    ofDrawBitmapString("ofxAudioAnalyzer\n\nALL ALGORITHMS EXAMPLE", 10, 32);
-    ofSetColor(ofColor::hotPink);
-    ofDrawBitmapString("Keys 1-6: Play audio tracks", 10, 100);
+//    ofSetColor(255);
+//    ofDrawBitmapString("ofxAudioAnalyzer\n\nALL ALGORITHMS EXAMPLE", 10, 32);
+//    ofSetColor(ofColor::hotPink);
+//    ofDrawBitmapString("Keys 1-6: Play audio tracks", 10, 100);
     
 }
 
@@ -560,7 +601,7 @@ void ofApp::drawAudioStuff(){
 //--------------------------------------------------------------
 void ofApp::audioIn(ofSoundBuffer &inBuffer){
     //ANALYZE SOUNDBUFFER:
-// audioAnalyzer.analyze(inBuffer);
+ audioAnalyzer.analyze(inBuffer);
 }
 //--------------------------------------------------------------
 void ofApp::exit(){
@@ -569,6 +610,8 @@ void ofApp::exit(){
     player.stop();
     kinect.setCameraTiltAngle(0); // zero the tilt on exit
     kinect.close();
+    midiIn.closePort();
+    midiIn.removeListener(this);
 }
 
 //--------------------------------------------------------------
@@ -586,25 +629,9 @@ void ofApp::keyPressed(int key){
             player.play();
 
             break;
-        case 'd':
-            player.load("chord.wav");
-            player.play();
+       
+            
 
-            break;
-        case 'r':
-            player.load("cadence.wav");
-            player.play();
-
-            break;
-        case 't':
-            player.load("beatTrack.wav");
-            player.play();
-
-            break;
-        case 'z':
-            player.load("noise.wav");
-            player.play();
-            break;
             
         case'p':
             bDrawPointCloud = !bDrawPointCloud;
@@ -705,6 +732,15 @@ void ofApp::keyReleased(int key){
     if (key == 't') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUEINVERT    , false);
     if (key == 'z') myGlitch.setFx(OFXPOSTGLITCH_CR_REDINVERT    , false);
     if (key == 'u') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENINVERT    , false);
+    
+    switch(key){
+        case 'n':
+            bDrawKinect = !bDrawKinect;
+            break;
+        case 'm':
+            bDrawKinect = !bDrawKinect;
+            break;
+    }
 }
 
 //--------------------------------------------------------------
@@ -751,3 +787,10 @@ void ofApp::gotMessage(ofMessage msg){
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
 }
+//--------------------------------------------------------------
+void ofApp::newMidiMessage(ofxMidiMessage& msg) {
+    
+    // make a copy of the latest message
+    midiMessage = msg;
+}
+
