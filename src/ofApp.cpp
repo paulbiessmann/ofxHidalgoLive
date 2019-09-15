@@ -6,6 +6,7 @@ void ofApp::setup(){
     //ofBackground(34, 34, 34);
     ofBackground(0);
     ofSetFrameRate(30);
+    ofSetBackgroundAuto(true);
     
     ofSetVerticalSync(true);
     ofEnableAlphaBlending();
@@ -112,10 +113,14 @@ void ofApp::update(){
         audioSensitivity = ofMap(midiMessage.value, 0, 127, 0, 1);
     }
     if(midiMessage.control == 1){ // fader 2
-        glitchAmount  = ofMap(midiMessage.value, 0, 127, 0, 1);
+        glitchAmount  = ofMap(midiMessage.value, 0, 127, 1, 0);
     }
     if(midiMessage.control == 2){ // fader 3
         whiteStuff  = ofMap(midiMessage.value, 0, 127, 0, 1);
+    }
+    
+    if(midiMessage.control == 3){ // fader 4
+        glitchLineWidth  = ofMap(midiMessage.value, 0, 127, 0, 1);
     }
     
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
@@ -174,14 +179,18 @@ void ofApp::draw(){
     
     /** Post **/
     screenGrabber.begin();
-    
 
     //img.draw(0,0);
     ofSetColor(255);
     
     
-    if(bDrawKinect){drawKinectStuff();}
-    if(bDrawAudio){drawAudioStuff();}
+    if(bDrawKinect){
+        drawKinectStuff();
+    }
+    else if(bDrawAudio){
+        ofClear(0,0,0,255);
+        drawAudioStuff();
+    }
     
 
     
@@ -306,12 +315,32 @@ void ofApp::drawKinectStuff(){
         int stepsize = 8;
         for(int i=0; i<fullWidth; i+=stepsize){
             for(int j=0; j<fullHeight; j+=stepsize/2){
-                ofColor col = ofColor(255, ofRandom(255) * whiteStuff);
+                ofColor col = ofColor(255, ofRandom(255) * whiteStuff + 255*whiteStuff);
                 ofSetColor(col);
                 ofDrawRectangle(i, j,  stepsize/2, stepsize);
             }
         }
     }
+    
+    if(1){
+        float glitchOpac = ofMap(glitchAmount, 1, 0, 0, 255);
+        if(glitchLineWidth > 0.999999){
+            ofSetColor(255, 255 * glitchOpac);
+            ofDrawRectangle(0, 0, fullWidth, fullHeight);
+        }
+        else{
+            for(int i=0; i<20; i++){
+                glitchLinePos = abs(sin(ofGetElapsedTimef() * i * 0.001 * glitchOpac)) * sin(i) * fullHeight;
+               //glitchLinePos = abs(sin(ofGetElapsedTimef() * i * 0.00001 * glitchOpac)) * fullHeight;
+                //glitchLinePos += i*glitchAmount * 0.01 + 1;
+                
+                if(glitchLinePos > fullHeight){glitchLinePos = 0;}
+                ofSetColor(255, glitchOpac + ofRandom(50));
+                ofDrawRectangle(0, glitchLinePos + ofNoise((100*i*ofGetElapsedTimef())), fullWidth, 200*glitchLineWidth + ofRandom(20)*glitchLineWidth);
+            }
+        }
+    }
+    
     ofSetColor(255);
 
 
@@ -735,10 +764,12 @@ void ofApp::keyReleased(int key){
     
     switch(key){
         case 'n':
-            bDrawKinect = !bDrawKinect;
+            bDrawKinect = false;
+            bDrawAudio = true;
             break;
         case 'm':
-            bDrawKinect = !bDrawKinect;
+            bDrawKinect = true;
+            bDrawAudio = false;
             break;
     }
 }
