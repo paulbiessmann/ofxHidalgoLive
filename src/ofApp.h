@@ -49,6 +49,7 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
         float rms;
         float rmsR;
         float power;
+        float power_R;
         float pitchFreq;
         float pitchFreq_R;
 
@@ -181,4 +182,5 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
     bool bReactPiano = true;
     bool bReactSinger = false;
     bool bReactWater = false;
+    bool bReactAll  = false;
 };

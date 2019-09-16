@@ -140,6 +140,8 @@ void ofApp::update(){
     rms     = audioAnalyzer.getValue(RMS, 0, smoothing);
     rmsR    = audioAnalyzer.getValue(RMS, 1, smoothing);
     power   = audioAnalyzer.getValue(POWER, 0, smoothing);
+    power_R   = audioAnalyzer.getValue(POWER, 1, smoothing);
+
     pitchFreq = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing);
     pitchFreq_R = audioAnalyzer.getValue(PITCH_FREQ, 1, smoothing);
 
@@ -283,7 +285,7 @@ void ofApp::draw(){
     // hirn wlan
     if(bReactSinger && (pitchFreq_R > 310 && pitchFreq_R < 330 && pitchConf_R > 0.4)){
         //ofDrawRectangle(50, 500, 10*rms, 100);
-        opacityLive = ofMap(rmsR, 0, 1, 0, 100);
+        opacityLive = ofMap(power_R, 0, 1, 0, 100);
         opacityLive *= audioSensitivity;
         //cout << "opacityLive 1 " << opacityLive << "\n";
         
@@ -295,7 +297,7 @@ void ofApp::draw(){
         //ofSetColor(0,255,0);
         //ofDrawRectangle(200, 500, 10*rms, 100);
         
-        opacityLive = ofMap(rms, 0, 1, 0, 100);
+        opacityLive = ofMap(power, 0, 1, 0, 100);
         opacityLive *= audioSensitivity;
         //cout << "opacityLive 2 " << opacityLive << "\n";
 
@@ -303,7 +305,13 @@ void ofApp::draw(){
     /** Wasser Netz Oszillation */
     else if(bReactWater && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.7)){
         
-        opacityLive = ofMap(rms, 0, 1, 0, 100);
+        opacityLive = ofMap(power, 0, 1, 0, 100);
+        opacityLive *= audioSensitivity;
+        
+    }
+    else if(bReactAll){
+        
+        opacityLive = ofMap(power, 0, 1, 0, 100);
         opacityLive *= audioSensitivity;
         
     }
@@ -562,6 +570,7 @@ void ofApp::drawAudioStuff(){
     ofSetColor(ofColor::cyan);
     ofDrawRectangle(xpos, ypos+5, value * mw, 10);
     
+    
     ofPopMatrix();
     
     //-Vector Values Algorithms:
@@ -643,8 +652,67 @@ void ofApp::drawAudioStuff(){
         float bin_h = -1 * (scaledValue * graphH);
         ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
     }
+    
     ofPopMatrix();
     
+    
+    ofPushMatrix();
+    
+    ypos = 50;
+    xpos = 300;
+    ofSetColor(255);
+    value = opacityLive;
+    strValue = "Opacity Live: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = bReactWater;
+    strValue = "bReactWater: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = bReactPiano;
+    strValue = "bReactPiano: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = bReactSinger;
+    strValue = "bReactSinger: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = bReactAll;
+    strValue = "bReactAll: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = bDrawKinect;
+    strValue = "bDrawKinect: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = bDrawAudio;
+    strValue = "bDrawAudio: " + ofToString(value);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    
+    ofPopMatrix();
     
     ofPopMatrix();
     
@@ -681,13 +749,14 @@ void ofApp::keyPressed(int key){
     switch (key) {
        
         case 'a':
-            player.load("HidalgoTest.wav");
-            player.play();
+            bReactAll = !bReactAll;
+//            player.load("HidalgoTest.wav");
+//            player.play();
 
             break;
         case 's':
-            player.load("TriggerPiano.wav");
-            player.play();
+//            player.load("TriggerPiano.wav");
+//            player.play();
 
             break;
        
@@ -796,6 +865,7 @@ void ofApp::keyReleased(int key){
     
     switch(key){
         case 'x':
+            bReactAll = false;
             bReactWater = false;
             bReactPiano = true;
             bReactSinger = false;
@@ -803,6 +873,7 @@ void ofApp::keyReleased(int key){
             bDrawAudio = false;
             break;
         case 'c':
+            bReactAll = false;
             bReactWater = false;
             bReactPiano = true;
             bReactSinger = true;
@@ -813,13 +884,15 @@ void ofApp::keyReleased(int key){
             bReactWater = false;
             bReactPiano = true;
             bReactSinger = true;
+            bReactAll = false;
             bDrawKinect = false;
             bDrawAudio = true;
             break;
         case 'n':
-            bReactWater = true;
+            bReactWater = false;
             bReactPiano = true;
             bReactSinger = true;
+            bReactAll = true;
             bDrawKinect = false;
             bDrawAudio = true;
             break;
