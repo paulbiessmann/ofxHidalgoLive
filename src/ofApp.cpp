@@ -148,35 +148,35 @@ void ofApp::update(){
     pitchConf = audioAnalyzer.getValue(PITCH_CONFIDENCE, 0, smoothing);
     pitchConf_R = audioAnalyzer.getValue(PITCH_CONFIDENCE, 1, smoothing);
 
-    pitchSalience  = audioAnalyzer.getValue(PITCH_SALIENCE, 0, smoothing);
-    inharmonicity   = audioAnalyzer.getValue(INHARMONICITY, 0, smoothing);
-    hfc = audioAnalyzer.getValue(HFC, 0, smoothing);
-    specComp = audioAnalyzer.getValue(SPECTRAL_COMPLEXITY, 0, smoothing);
-    centroid = audioAnalyzer.getValue(CENTROID, 0, smoothing);
-    rollOff = audioAnalyzer.getValue(ROLL_OFF, 0, smoothing);
-    oddToEven = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing);
+//    pitchSalience  = audioAnalyzer.getValue(PITCH_SALIENCE, 0, smoothing);
+//    inharmonicity   = audioAnalyzer.getValue(INHARMONICITY, 0, smoothing);
+//    hfc = audioAnalyzer.getValue(HFC, 0, smoothing);
+//    specComp = audioAnalyzer.getValue(SPECTRAL_COMPLEXITY, 0, smoothing);
+//    centroid = audioAnalyzer.getValue(CENTROID, 0, smoothing);
+//    rollOff = audioAnalyzer.getValue(ROLL_OFF, 0, smoothing);
+//    oddToEven = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing);
     strongPeak = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing);
     strongPeak_R = audioAnalyzer.getValue(STRONG_PEAK, 1, smoothing);
 
     strongDecay = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing);
-    //Normalized values for graphic meters:
-    pitchFreqNorm   = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing, TRUE);
-    hfcNorm     = audioAnalyzer.getValue(HFC, 0, smoothing, TRUE);
-    specCompNorm = audioAnalyzer.getValue(SPECTRAL_COMPLEXITY, 0, smoothing, TRUE);
-    centroidNorm = audioAnalyzer.getValue(CENTROID, 0, smoothing, TRUE);
-    rollOffNorm  = audioAnalyzer.getValue(ROLL_OFF, 0, smoothing, TRUE);
-    oddToEvenNorm   = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing, TRUE);
-    strongPeakNorm  = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing, TRUE);
-    strongDecayNorm = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing, TRUE);
-    
-    dissonance = audioAnalyzer.getValue(DISSONANCE, 0, smoothing);
+//    //Normalized values for graphic meters:
+//    pitchFreqNorm   = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing, TRUE);
+//    hfcNorm     = audioAnalyzer.getValue(HFC, 0, smoothing, TRUE);
+//    specCompNorm = audioAnalyzer.getValue(SPECTRAL_COMPLEXITY, 0, smoothing, TRUE);
+//    centroidNorm = audioAnalyzer.getValue(CENTROID, 0, smoothing, TRUE);
+//    rollOffNorm  = audioAnalyzer.getValue(ROLL_OFF, 0, smoothing, TRUE);
+//    oddToEvenNorm   = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing, TRUE);
+//    strongPeakNorm  = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing, TRUE);
+//    strongDecayNorm = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing, TRUE);
+//
+//    dissonance = audioAnalyzer.getValue(DISSONANCE, 0, smoothing);
     
     spectrum = audioAnalyzer.getValues(SPECTRUM, 0, smoothing);
-    melBands = audioAnalyzer.getValues(MEL_BANDS, 0, smoothing);
-    mfcc = audioAnalyzer.getValues(MFCC, 0, smoothing);
-    hpcp = audioAnalyzer.getValues(HPCP, 0, smoothing);
+//    melBands = audioAnalyzer.getValues(MEL_BANDS, 0, smoothing);
+//    mfcc = audioAnalyzer.getValues(MFCC, 0, smoothing);
+//    hpcp = audioAnalyzer.getValues(HPCP, 0, smoothing);
     
-    tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
+//    tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
     
     isOnset = audioAnalyzer.getOnsetValue(0);
   
@@ -245,39 +245,59 @@ void ofApp::draw(){
 //    }
     ofSetColor(255);
 
-    if(1){
-        if(pitchFreq > 800 && pitchFreq < 850 && pitchConf > glitchAmount ){ //0.4
+    if(audioSensitivity > 0.5 && bDrawKinect){
+        if(strongPeak > 1.2 - audioSensitivity ){ //0.4
+            myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , true);
+        }else if(strongPeak_R > 0.2 + glitchAmount ){ //0.4
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , false);
         }
-        if(pitchFreq > 400 && pitchFreq < 450 && pitchConf > glitchAmount  ){
+        
+        if((pitchFreq  > 400 && pitchFreq < 450 && pitchConf > audioSensitivity)  || strongPeak > 0.2 + glitchAmount ){
+            myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , true);
+        }else if((pitchFreq_R  > 400 && pitchFreq_R < 450 && pitchConf_R  > audioSensitivity)  || strongPeak_R > 0.2 + glitchAmount ){
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , false);
         }
-        if(pitchFreq > 300 && pitchFreq < 350 && pitchConf > glitchAmount ){
+        
+        if((pitchFreq  > 300 && pitchFreq  < 350 && pitchConf > audioSensitivity) || strongPeak > 0.2 + glitchAmount ){
+            myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , true);
+        }else if((pitchFreq_R  > 300 && pitchFreq_R  < 350 && pitchConf_R > audioSensitivity) || strongPeak_R > 0.2 + glitchAmount ){
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , false);
         }
-        if(pitchFreq > 200 && pitchFreq < 250 && pitchConf > glitchAmount  ){
+        
+        if((pitchFreq  > 200 && pitchFreq < 250 && pitchConf  > audioSensitivity ) || strongPeak > 0.2 + glitchAmount ){
+            myGlitch.setFx(OFXPOSTGLITCH_TWIST            , true);
+        }
+        else if((pitchFreq_R  > 200 && pitchFreq_R  < 250 && pitchConf_R > audioSensitivity ) || strongPeak_R > 0.2 + glitchAmount ){
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , true);
         }
         else{
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , false);
         }
-        if(pitchFreq > 100 && pitchFreq < 150 && pitchConf > glitchAmount){
+        
+        if((pitchFreq  > 100 && pitchFreq < 150 && pitchConf  > audioSensitivity) || strongPeak > 0.2 + glitchAmount ){
+            myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , true);
+        }else if((pitchFreq_R  > 100 && pitchFreq_R  < 150 && pitchConf_R > audioSensitivity) || strongPeak_R > 0.2 + glitchAmount ){
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , false);
-
+            
         }
-        if(pitchFreq > 1000 && pitchFreq < 1050&& pitchConf > glitchAmount || strongPeak > 1.5 - glitchAmount  ){ //0.7
-            myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE    , true);
+        
+        if((pitchFreq  > 500 && pitchFreq  < 550 && pitchConf > audioSensitivity )|| strongPeak > 0.2 + glitchAmount  ){ //0.7
+            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , true);
+        }else if((pitchFreq_R  > 500 && pitchFreq_R  < 550 && pitchConf_R > audioSensitivity )|| strongPeak_R > 0.2 + glitchAmount  ){ //0.7
+            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , true);
         }else{
-            myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE    , false);
+            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , false);
         }
+
+      
     }
     
     
@@ -293,27 +313,32 @@ void ofApp::draw(){
     
     //piano
     //if(strongPeak > 0.7){
-    else if(bReactPiano && ((pitchFreq > 1000 && pitchConf > 0.4) || strongPeak > 0.7)){
+    else if(bReactPiano && ((pitchFreq > 600 && pitchConf > 0.1) || (strongPeak > 0.7 || strongDecay > 18 ))){
         //ofSetColor(0,255,0);
         //ofDrawRectangle(200, 500, 10*rms, 100);
         
-        opacityLive = ofMap(power, 0, 1, 0, 100);
-        opacityLive *= audioSensitivity;
+        if(power > 0.5){
+
+            opacityLive = ofMap(power, 0, 1, 0, 100);;
+            opacityLive *= audioSensitivity;
+        }
         //cout << "opacityLive 2 " << opacityLive << "\n";
 
     }
     /** Wasser Netz Oszillation */
     else if(bReactWater && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.7)){
         
-        opacityLive = ofMap(power, 0, 1, 0, 100);
-        opacityLive *= audioSensitivity;
+        if(power > 0.5){
+            opacityLive = ofMap(power, 0, 1, 0, 100);
+            opacityLive *= audioSensitivity;
+        }
         
     }
     else if(bReactAll){
-        
-        opacityLive = ofMap(power, 0, 1, 0, 100);
-        opacityLive *= audioSensitivity;
-        
+        if(power > 0.5){
+            opacityLive = ofMap(power, 0, 1, 0, 100);
+            opacityLive *= audioSensitivity;
+        }
     }
     
     else {
@@ -324,7 +349,8 @@ void ofApp::draw(){
         opacityLive = opacityMan;
     }
     
-    if(ofGetFrameNum() % 3 == 0){
+    if(abs(opacityLive - opacityTemp) > 1.0){
+        opacityTemp = opacityLive;
         cout << "opacityLive " << opacityLive << "\n";
         string message="setInput \"opacityLive\" " + ofToString(opacityLive);
         udpConnection.Send(message.c_str(),message.length());
@@ -354,7 +380,7 @@ void ofApp::drawKinectStuff(){
     }
     
     if(1){
-        float glitchOpac = ofMap(glitchAmount, 1, 0, 0, 255);
+        float glitchOpac = ofMap(glitchLineWidth, 0,1, 0, 255);
         if(glitchLineWidth > 0.999999){
             ofSetColor(255, 255 * glitchOpac);
             ofDrawRectangle(0, 0, fullWidth, fullHeight);
@@ -362,7 +388,7 @@ void ofApp::drawKinectStuff(){
         else{
             for(int i=0; i<20; i++){
                 glitchLinePos = abs(sin(ofGetElapsedTimef() * i * 0.001 * glitchOpac)) * sin(i) * fullHeight;
-               //glitchLinePos = abs(sin(ofGetElapsedTimef() * i * 0.00001 * glitchOpac)) * fullHeight;
+               //glitchLinePos = abs(sin(ofGetElapsedTimef() * i * 0.00001 * glitchOpac)) * fullHeight;s
                 //glitchLinePos += i*glitchAmount * 0.01 + 1;
                 
                 if(glitchLinePos > fullHeight){glitchLinePos = 0;}
@@ -750,17 +776,16 @@ void ofApp::keyPressed(int key){
        
         case 'a':
             bReactAll = !bReactAll;
-//            player.load("HidalgoTest.wav");
-//            player.play();
-
             break;
         case 's':
-//            player.load("TriggerPiano.wav");
-//            player.play();
-
+            bReactSinger = !bReactSinger;
             break;
-       
-            
+        case 'd':
+            bReactPiano = !bReactPiano;
+            break;
+        case 'w':
+            bReactWater = !bReactWater;
+            break;
 
             
         case'p':
@@ -822,7 +847,6 @@ void ofApp::keyPressed(int key){
     if (key == '0') myGlitch.setFx(OFXPOSTGLITCH_INVERT            , true);
     
     if (key == 'q') myGlitch.setFx(OFXPOSTGLITCH_CR_HIGHCONTRAST, true);
-    if (key == 'w') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE    , true);
     if (key == 'e') myGlitch.setFx(OFXPOSTGLITCH_CR_REDRAISE    , true);
     if (key == 'r') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENRAISE    , true);
     if (key == 't') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUEINVERT    , true);
@@ -889,7 +913,7 @@ void ofApp::keyReleased(int key){
             bDrawAudio = true;
             break;
         case 'n':
-            bReactWater = false;
+            bReactWater = true;
             bReactPiano = true;
             bReactSinger = true;
             bReactAll = true;

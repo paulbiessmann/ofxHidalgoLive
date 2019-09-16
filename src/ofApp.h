@@ -175,6 +175,7 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
         float glitchLineWidth;
     
         float opacityLive = 0;
+        float opacityTemp = 0;
         float opacityMan = 0;
         bool    bDrawKinect = false;
         bool    bDrawAudio  = true;
