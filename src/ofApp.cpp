@@ -3,9 +3,11 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     
+    bHideCursor = true;
+    
     //ofBackground(34, 34, 34);
     ofBackground(0);
-    ofSetFrameRate(30);
+    ofSetFrameRate(25);
     ofSetBackgroundAuto(true);
     
     ofSetVerticalSync(true);
@@ -19,7 +21,7 @@ void ofApp::setup(){
     
     // MIDI
     midiIn.listPorts();
-    midiIn.openPort(2); //3
+    midiIn.openPort(3); //3
     midiIn.ignoreTypes(false, false, false);
     midiIn.addListener(this);
     midiIn.setVerbose(true);
@@ -27,7 +29,7 @@ void ofApp::setup(){
     // setup the sound stream
     soundStream.setup(this, outChannels, inChannels, sampleRate, bufferSize, 3);
     soundStream.printDeviceList();
-    //soundStream.setDeviceID(2);
+   // soundStream.setDeviceID(3); //3
     
     //setup ofxAudioAnalyzer with the SAME PARAMETERS
     audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
@@ -43,7 +45,7 @@ void ofApp::setup(){
     
     //create the socket and set to send to 127.0.0.1:11999
     udpConnection.Create();
-    udpConnection.Connect("127.0.0.1",3040); //3040
+    udpConnection.Connect("10.101.3.4",3040); //3040
     udpConnection.SetNonBlocking(true);
     
     
@@ -118,9 +120,11 @@ void ofApp::update(){
     if(midiMessage.control == 2){ // fader 3
         whiteStuff  = ofMap(midiMessage.value, 0, 127, 0, 1);
     }
-    
     if(midiMessage.control == 3){ // fader 4
         glitchLineWidth  = ofMap(midiMessage.value, 0, 127, 0, 1);
+    }
+    if(midiMessage.control == 7){ // fader 8
+        opacityMan  = ofMap(midiMessage.value, 0, 127, 0, 100);
     }
     
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
@@ -134,9 +138,14 @@ void ofApp::update(){
     
     //-:get Values:
     rms     = audioAnalyzer.getValue(RMS, 0, smoothing);
+    rmsR    = audioAnalyzer.getValue(RMS, 1, smoothing);
     power   = audioAnalyzer.getValue(POWER, 0, smoothing);
     pitchFreq = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing);
+    pitchFreq_R = audioAnalyzer.getValue(PITCH_FREQ, 1, smoothing);
+
     pitchConf = audioAnalyzer.getValue(PITCH_CONFIDENCE, 0, smoothing);
+    pitchConf_R = audioAnalyzer.getValue(PITCH_CONFIDENCE, 1, smoothing);
+
     pitchSalience  = audioAnalyzer.getValue(PITCH_SALIENCE, 0, smoothing);
     inharmonicity   = audioAnalyzer.getValue(INHARMONICITY, 0, smoothing);
     hfc = audioAnalyzer.getValue(HFC, 0, smoothing);
@@ -145,6 +154,8 @@ void ofApp::update(){
     rollOff = audioAnalyzer.getValue(ROLL_OFF, 0, smoothing);
     oddToEven = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing);
     strongPeak = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing);
+    strongPeak_R = audioAnalyzer.getValue(STRONG_PEAK, 1, smoothing);
+
     strongDecay = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing);
     //Normalized values for graphic meters:
     pitchFreqNorm   = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing, TRUE);
@@ -266,38 +277,50 @@ void ofApp::draw(){
             myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE    , false);
         }
     }
-
-    
-
     
     
     // PB Tests
     // hirn wlan
-    if(pitchFreq > 310 && pitchFreq < 330 && pitchConf > 0.4){
-        ofDrawRectangle(50, 500, 10*rms, 100);
-        
-        cout << "opacityLive 1 " << opacityLive << "\n";
+    if(bReactSinger && (pitchFreq_R > 310 && pitchFreq_R < 330 && pitchConf_R > 0.4)){
+        //ofDrawRectangle(50, 500, 10*rms, 100);
+        opacityLive = ofMap(rmsR, 0, 1, 0, 100);
+        opacityLive *= audioSensitivity;
+        //cout << "opacityLive 1 " << opacityLive << "\n";
         
     }
     
     //piano
     //if(strongPeak > 0.7){
-    else if((pitchFreq > 1000 && pitchConf > 0.4) || strongPeak > 0.7){
-        ofSetColor(0,255,0);
-        ofDrawRectangle(200, 500, 10*rms, 100);
+    else if(bReactPiano && ((pitchFreq > 1000 && pitchConf > 0.4) || strongPeak > 0.7)){
+        //ofSetColor(0,255,0);
+        //ofDrawRectangle(200, 500, 10*rms, 100);
         
         opacityLive = ofMap(rms, 0, 1, 0, 100);
         opacityLive *= audioSensitivity;
-        cout << "opacityLive 2 " << opacityLive << "\n";
+        //cout << "opacityLive 2 " << opacityLive << "\n";
 
+    }
+    /** Wasser Netz Oszillation */
+    else if(bReactWater && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.7)){
+        
+        opacityLive = ofMap(rms, 0, 1, 0, 100);
+        opacityLive *= audioSensitivity;
+        
     }
     
     else {
         opacityLive = 0;
     }
     
-    string message="setInput \"opacityLive\" " + ofToString(opacityLive);
-    udpConnection.Send(message.c_str(),message.length());
+    if(opacityMan > 0.01){
+        opacityLive = opacityMan;
+    }
+    
+    if(ofGetFrameNum() % 3 == 0){
+        cout << "opacityLive " << opacityLive << "\n";
+        string message="setInput \"opacityLive\" " + ofToString(opacityLive);
+        udpConnection.Send(message.c_str(),message.length());
+    }
     
 }
 //--------------------------------------------------------------
@@ -409,6 +432,15 @@ void ofApp::drawAudioStuff(){
     ofDrawBitmapString(strValue, xpos, ypos);
     ofSetColor(ofColor::cyan);
     ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
+    value = rmsR;
+    strValue = "RMS_R: " + ofToString(value, 2);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+    
     
     ypos += 50;
     ofSetColor(255);
@@ -763,11 +795,38 @@ void ofApp::keyReleased(int key){
     if (key == 'u') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENINVERT    , false);
     
     switch(key){
+        case 'x':
+            bReactWater = false;
+            bReactPiano = true;
+            bReactSinger = false;
+            bDrawKinect = true;
+            bDrawAudio = false;
+            break;
+        case 'c':
+            bReactWater = false;
+            bReactPiano = true;
+            bReactSinger = true;
+            bDrawKinect = true;
+            bDrawAudio = false;
+            break;
+        case 'v':
+            bReactWater = false;
+            bReactPiano = true;
+            bReactSinger = true;
+            bDrawKinect = false;
+            bDrawAudio = true;
+            break;
         case 'n':
+            bReactWater = true;
+            bReactPiano = true;
+            bReactSinger = true;
             bDrawKinect = false;
             bDrawAudio = true;
             break;
         case 'm':
+            bReactWater = true;
+            bReactPiano = true;
+            bReactSinger = true;
             bDrawKinect = true;
             bDrawAudio = false;
             break;

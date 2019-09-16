@@ -47,10 +47,14 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
         ofSoundBuffer soundBuffer;
 
         float rms;
+        float rmsR;
         float power;
         float pitchFreq;
+        float pitchFreq_R;
+
         float pitchFreqNorm;
         float pitchConf;
+        float pitchConf_R;
         float pitchSalience;
         float hfc;
         float hfcNorm;
@@ -65,6 +69,8 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
         float oddToEven;
         float oddToEvenNorm;
         float strongPeak;
+        float strongPeak_R;
+
         float strongPeakNorm;
         float strongDecay;
         float strongDecayNorm;
@@ -168,6 +174,11 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
         float glitchLineWidth;
     
         float opacityLive = 0;
+        float opacityMan = 0;
         bool    bDrawKinect = false;
         bool    bDrawAudio  = true;
+    
+    bool bReactPiano = true;
+    bool bReactSinger = false;
+    bool bReactWater = false;
 };
