@@ -313,17 +313,16 @@ void ofApp::draw(){
     
     //piano
     //if(strongPeak > 0.7){
-    else if(bReactPiano && ((pitchFreq > 600 && pitchConf > 0.1) || (strongPeak > 0.7 || strongDecay > 18 ))){
-        //ofSetColor(0,255,0);
-        //ofDrawRectangle(200, 500, 10*rms, 100);
+    else if(bReactPiano && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.5)){
         
-        if(power > 0.5){
-
-            opacityLive = ofMap(power, 0, 1, 0, 100);;
+        if(power > 0.3){
+            opacityLive = 100;
             opacityLive *= audioSensitivity;
+            if(opacityLive > 50){
+                opacityLive = 100;
+            }
         }
-        //cout << "opacityLive 2 " << opacityLive << "\n";
-
+        
     }
     /** Wasser Netz Oszillation */
     else if(bReactWater && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.7)){
@@ -336,8 +335,11 @@ void ofApp::draw(){
     }
     else if(bReactAll){
         if(power > 0.5){
-            opacityLive = ofMap(power, 0, 1, 0, 100);
+            opacityLive = 100;
             opacityLive *= audioSensitivity;
+            if(opacityLive > 40){
+                opacityLive = 100;
+            }
         }
     }
     
@@ -345,9 +347,15 @@ void ofApp::draw(){
         opacityLive = 0;
     }
     
-    if(opacityMan > 0.01){
+    
+    
+    if(opacityKey > 0.1){
+        opacityLive = opacityKey;
+    }
+    else if(opacityMan > 0.01){
         opacityLive = opacityMan;
     }
+    
     
     if(abs(opacityLive - opacityTemp) > 1.0){
         opacityTemp = opacityLive;
@@ -771,7 +779,9 @@ void ofApp::exit(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    player.stop();
+    //player.stop();
+    string message;
+    
     switch (key) {
        
         case 'a':
@@ -787,11 +797,10 @@ void ofApp::keyPressed(int key){
             bReactWater = !bReactWater;
             break;
 
-            
-        case'p':
-            bDrawPointCloud = !bDrawPointCloud;
+        case 'p':
+            opacityKey = 100;
             break;
-            
+
             
         case 'h':
             bHideCursor = !bHideCursor;
@@ -927,6 +936,11 @@ void ofApp::keyReleased(int key){
             bDrawKinect = true;
             bDrawAudio = false;
             break;
+            
+        case 'p':
+            opacityKey = 0;
+            break;
+            
     }
 }
 
