@@ -91,7 +91,8 @@ void ofApp::setup(){
     
     kinect.init();
     //kinect.init(true); // shows infrared instead of RGB video image
-    kinect.init(false, false); // disable video image (faster fps)
+   // kinect.init(false, false); // disable video image (faster fps)
+   
     
     kinect.open();        // opens first available kinect
 
@@ -246,56 +247,56 @@ void ofApp::draw(){
     ofSetColor(255);
 
     if(audioSensitivity > 0.5 && bDrawKinect){
-        if(strongPeak > 1.2 - audioSensitivity ){ //0.4
+        if(pitchFreq  > 100 && pitchFreq < 150 && pitchConf > audioSensitivity && strongPeak > 1.2 - audioSensitivity ){ //0.4
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , true);
-        }else if(strongPeak_R > 0.2 + glitchAmount ){ //0.4
+        }else if(strongPeak_R > 1.2 - audioSensitivity  ){ //0.4
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE    , false);
         }
         
-        if((pitchFreq  > 400 && pitchFreq < 450 && pitchConf > audioSensitivity)  || strongPeak > 0.2 + glitchAmount ){
+        if((pitchFreq  > 400 && pitchFreq < 450 && pitchConf > audioSensitivity)  && strongPeak > 1.2 - audioSensitivity ){
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , true);
-        }else if((pitchFreq_R  > 400 && pitchFreq_R < 450 && pitchConf_R  > audioSensitivity)  || strongPeak_R > 0.2 + glitchAmount ){
+        }else if((pitchFreq_R  > 400 && pitchFreq_R < 450 && pitchConf_R  > audioSensitivity)  && strongPeak_R > 1.2 - audioSensitivity ){
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_SHAKER          , false);
         }
         
-        if((pitchFreq  > 300 && pitchFreq  < 350 && pitchConf > audioSensitivity) || strongPeak > 0.2 + glitchAmount ){
+        if((pitchFreq  > 300 && pitchFreq  < 350 && pitchConf > audioSensitivity) && strongPeak > 1.2 - audioSensitivity  ){
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , true);
-        }else if((pitchFreq_R  > 300 && pitchFreq_R  < 350 && pitchConf_R > audioSensitivity) || strongPeak_R > 0.2 + glitchAmount ){
+        }else if((pitchFreq_R  > 300 && pitchFreq_R  < 350 && pitchConf_R > audioSensitivity) && strongPeak_R > 1.2 - audioSensitivity ){
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER        , false);
         }
         
-        if((pitchFreq  > 200 && pitchFreq < 250 && pitchConf  > audioSensitivity ) || strongPeak > 0.2 + glitchAmount ){
+        if((pitchFreq  > 200 && pitchFreq < 250 && pitchConf  > audioSensitivity ) && strongPeak > 1.2 - audioSensitivity ){
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , true);
         }
-        else if((pitchFreq_R  > 200 && pitchFreq_R  < 250 && pitchConf_R > audioSensitivity ) || strongPeak_R > 0.2 + glitchAmount ){
+        else if((pitchFreq_R  > 200 && pitchFreq_R  < 250 && pitchConf_R > audioSensitivity ) && strongPeak_R > 1.2 - audioSensitivity  ){
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , true);
         }
         else{
             myGlitch.setFx(OFXPOSTGLITCH_TWIST            , false);
         }
         
-        if((pitchFreq  > 100 && pitchFreq < 150 && pitchConf  > audioSensitivity) || strongPeak > 0.2 + glitchAmount ){
+        if((pitchFreq  > 100 && pitchFreq < 150 && pitchConf  > audioSensitivity) && strongPeak > 1.2 - audioSensitivity ){
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , true);
-        }else if((pitchFreq_R  > 100 && pitchFreq_R  < 150 && pitchConf_R > audioSensitivity) || strongPeak_R > 0.2 + glitchAmount ){
+        }else if((pitchFreq_R  > 100 && pitchFreq_R  < 150 && pitchConf_R > audioSensitivity) && strongPeak_R > 1.2 - audioSensitivity  ){
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , true);
         }else{
             myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN        , false);
             
         }
         
-        if((pitchFreq  > 500 && pitchFreq  < 550 && pitchConf > audioSensitivity )|| strongPeak > 0.2 + glitchAmount  ){ //0.7
-            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , true);
-        }else if((pitchFreq_R  > 500 && pitchFreq_R  < 550 && pitchConf_R > audioSensitivity )|| strongPeak_R > 0.2 + glitchAmount  ){ //0.7
-            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , true);
-        }else{
-            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , false);
-        }
+//        if((pitchFreq  > 500 && pitchFreq  < 550 && pitchConf > audioSensitivity ) && strongPeak >1.2 - audioSensitivity  ){ //0.7
+//            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , true);
+//        }else if((pitchFreq_R  > 500 && pitchFreq_R  < 550 && pitchConf_R > audioSensitivity ) && strongPeak_R > 1.2 - audioSensitivity   ){ //0.7
+//            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , true);
+//        }else{
+//            myGlitch.setFx(OFXPOSTGLITCH_NOISE    , false);
+//        }
 
       
     }
@@ -313,9 +314,9 @@ void ofApp::draw(){
     
     //piano
     //if(strongPeak > 0.7){
-    else if(bReactPiano && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.5)){
+    else if(bReactPiano && ((pitchFreq > 700 && pitchConf > 0.4) || strongPeak > 0.7)){
         
-        if(power > 0.3){
+        if(power > 0.5){
             opacityLive = 100;
             opacityLive *= audioSensitivity;
             if(opacityLive > 50){
@@ -369,7 +370,7 @@ void ofApp::draw(){
 void ofApp::drawKinectStuff(){
     
     if(bDrawPointCloud){
-        drawPointCloud();
+        kinect.draw(0, 0, ofGetWidth(), ofGetHeight());
     }
     else{
         kinect.drawDepth(0, 0, ofGetWidth(), ofGetHeight());
@@ -797,6 +798,10 @@ void ofApp::keyPressed(int key){
             bReactWater = !bReactWater;
             break;
 
+        case 'o':
+            bDrawPointCloud = !bDrawPointCloud;
+            break;
+            
         case 'p':
             opacityKey = 100;
             break;
